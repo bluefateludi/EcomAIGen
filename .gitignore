@@ -37,3 +37,12 @@ application-local.yml
 
 ## 生成文件 ##
 tmp/
+
+## 本地依赖仓库 ##
+repository/
+
+## 其他忽略文件 ##
+*.http
+nul
+*.md
+!README.md
