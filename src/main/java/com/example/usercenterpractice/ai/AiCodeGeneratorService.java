@@ -7,7 +7,7 @@ import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
 import reactor.core.publisher.Flux;
 
-interface AiCodeGeneratorService  {
+public interface AiCodeGeneratorService {
 
 
 
@@ -18,7 +18,7 @@ interface AiCodeGeneratorService  {
  * @return 生成代码结果
  */
 @SystemMessage(fromResource = "Prompt/codegen-html-system-prompt.txt")
-HtmlCodeResult generateHtmlCode(@MemoryId int memoryId, @UserMessage String userMessage);
+HtmlCodeResult generateHtmlCode(@MemoryId Long memoryId, @UserMessage String userMessage);
 
 
 
