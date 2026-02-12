@@ -3,6 +3,7 @@ package com.example.usercenterpractice.controller;
 import cn.hutool.core.bean.BeanUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.example.usercenterpractice.annotation.AuthCheck;
+import com.example.usercenterpractice.model.dto.app.AppAddRequest;
 import com.example.usercenterpractice.common.BaseResponse;
 import com.example.usercenterpractice.common.DeleteRequest;
 import com.example.usercenterpractice.common.ResultUtils;
@@ -10,11 +11,14 @@ import com.example.usercenterpractice.constant.UserConstants;
 import com.example.usercenterpractice.exception.BusinessException;
 import com.example.usercenterpractice.exception.ErrorCode;
 import com.example.usercenterpractice.exception.ThrowUtils;
+import com.example.usercenterpractice.model.domain.App;
 import com.example.usercenterpractice.model.domain.User;
 import com.example.usercenterpractice.model.dto.user.*;
+import com.example.usercenterpractice.model.enums.CodeGenTypeEnum;
 import com.example.usercenterpractice.model.vo.LoginUserVO;
 import com.example.usercenterpractice.model.vo.UserVO;
 import com.example.usercenterpractice.service.UserService;
+import com.github.xiaoymin.knife4j.core.util.StrUtil;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -152,6 +156,7 @@ public class UserController {
         userVOPage.setRecords(userVOList);
         return ResultUtils.success(userVOPage);
     }
+
 
 
 

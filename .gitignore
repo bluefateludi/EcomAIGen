@@ -34,3 +34,6 @@ build/
 
 ## CUSTOM ##
 application-local.yml
+
+## 生成文件 ##
+tmp/
