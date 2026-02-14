@@ -1,6 +1,7 @@
 package com.example.usercenterpractice.model.domain;
 
 
+import java.io.Serializable;
 import java.util.Date;
 
 import com.baomidou.mybatisplus.annotation.*;
@@ -14,7 +15,10 @@ import lombok.Setter;
  */
 @TableName(value ="user")
 @Data
-public class User {
+public class User implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
     /**
      * id
      */

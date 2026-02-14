@@ -16,14 +16,14 @@ class AiCodeGeneratorServiceTest {
     private AiCodeGeneratorService aiCodeGeneratorService;
     @Test
     void generateHtmlCode() {
-         HtmlCodeResult result = aiCodeGeneratorService.generateHtmlCode("请生成一个网站，代码不超过20行");
+         HtmlCodeResult result = aiCodeGeneratorService.generateHtmlCode( 1L,"请生成一个网站，代码不超过20行");
         Assertions.assertNotNull(result);
     }
 
     @Test
     void generateMultiFileCode() {
 
-        MultiFileCodeResult result = aiCodeGeneratorService.generateMultiFileCode("请生成一个生日祝福网站，代码不超过50行");
+        MultiFileCodeResult result = aiCodeGeneratorService.generateMultiFileCode(  "请生成一个生日祝福网站，代码不超过50行");
         Assertions.assertNotNull(result);
     }
 }
