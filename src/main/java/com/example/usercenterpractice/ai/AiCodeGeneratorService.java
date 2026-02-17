@@ -2,6 +2,7 @@ package com.example.usercenterpractice.ai;
 
 import com.example.usercenterpractice.ai.model.HtmlCodeResult;
 import com.example.usercenterpractice.ai.model.MultiFileCodeResult;
+import dev.langchain4j.service.TokenStream;
 import dev.langchain4j.service.MemoryId;
 import dev.langchain4j.service.SystemMessage;
 import dev.langchain4j.service.UserMessage;
@@ -51,10 +52,11 @@ MultiFileCodeResult generateMultiFileCode(String userMessage);
     /**
      * 生成 Vue 项目代码（流式）
      *
+     * @param appId 应用 ID（用于对话记忆）
      * @param userMessage 用户消息
-     * @return 生成过程的流式响应
+     * @return TokenStream 流式响应（包含工具调用信息）
      */
     @SystemMessage(fromResource = "Prompt/codegen-vue-system-prompt.txt")
-    Flux<String> generateVueProjectCodeStream(@MemoryId long appId, @UserMessage String userMessage);
+    TokenStream generateVueProjectCodeStream(@MemoryId long appId, @UserMessage String userMessage);
 
 }

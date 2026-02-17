@@ -1,6 +1,6 @@
 package com.example.usercenterpractice.ai;
 
-import com.example.usercenterpractice.ai.tools.FileWriteTool;
+import com.example.usercenterpractice.ai.tools.*;
 import com.example.usercenterpractice.exception.BusinessException;
 import com.example.usercenterpractice.exception.ErrorCode;
 import com.example.usercenterpractice.model.enums.CodeGenTypeEnum;
@@ -120,11 +120,18 @@ public class AiCodeGeneratorServiceFactory {
             case VUE_PROJECT -> AiServices.builder(AiCodeGeneratorService.class)
                     .streamingChatModel(reasoningStreamingChatModel)
                     .chatMemoryProvider(memoryId -> chatMemory)
-                    .tools(new FileWriteTool())
+                    .tools(
+                            new FileWriteTool(),
+                            new FileReadTool(),
+                            new FileModifyTool(),
+                            new FileDirReadTool(),
+                            new FileDeleteTool()
+                    )
                     .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(
                             toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name()
                     ))
                     .build();
+
             // HTML 和多文件生成使用默认模型
             case HTML, MULTI_FILE -> AiServices.builder(AiCodeGeneratorService.class)
                     .chatModel(chatModel)

@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.usercenterpractice.model.domain.App;
 import com.example.usercenterpractice.model.domain.User;
+import com.example.usercenterpractice.model.dto.app.AppAddRequest;
 import com.example.usercenterpractice.model.dto.app.AppQueryRequest;
 import com.example.usercenterpractice.model.vo.AppVO;
 import reactor.core.publisher.Flux;
@@ -47,4 +48,15 @@ public interface AppService extends IService<App> {
     Flux<String> chatToGenCode(Long appId, String message, User loginUser);
 
     String deployApp(Long appId, User loginUser);
+
+    void generateAppScreenshotAsync(Long appId, String appUrl);
+
+    /**
+     * 创建应用（使用 AI 智能选择代码生成类型）
+     *
+     * @param appAddRequest 创建应用请求
+     * @param loginUser     登录用户
+     * @return 应用 ID
+     */
+    Long createApp(AppAddRequest appAddRequest, User loginUser);
 }
