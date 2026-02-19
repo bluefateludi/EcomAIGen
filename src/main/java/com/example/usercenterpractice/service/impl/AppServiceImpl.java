@@ -230,8 +230,18 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>
         }
         // 8. 复制文件到部署目录
         String deployDirPath = AppConstant.CODE_DEPLOY_ROOT_DIR + File.separator + deployKey;
+        File deployDir = new File(deployDirPath);
+        // 如果部署目录已存在，先删除
+        if (deployDir.exists()) {
+            deleteDirectory(deployDir);
+        }
+        // 创建部署目录
+        deployDir.mkdirs();
+        // 复制文件到部署目录
+        copyDirectory(sourceDir, deployDir);
+        log.info("应用部署成功，源目录: {}，部署目录: {}", sourceDir.getAbsolutePath(), deployDir.getAbsolutePath());
 
-        // 8. 更新应用的 deployKey 和部署时间
+        // 9. 更新应用的 deployKey 和部署时间
         App updateApp = new App();
         updateApp.setId(appId);
         updateApp.setDeployKey(deployKey);
@@ -297,6 +307,67 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>
             boolean updated = this.updateById(updateApp);
             ThrowUtils.throwIf(!updated, ErrorCode.OPERATION_ERROR, "更新应用封面字段失败");
         });
+    }
+
+    /**
+     * 递归删除目录
+     *
+     * @param directory 要删除的目录
+     */
+    private void deleteDirectory(File directory) {
+        if (directory == null || !directory.exists()) {
+            return;
+        }
+        if (directory.isDirectory()) {
+            File[] files = directory.listFiles();
+            if (files != null) {
+                for (File file : files) {
+                    if (file.isDirectory()) {
+                        deleteDirectory(file);
+                    } else {
+                        file.delete();
+                    }
+                }
+            }
+        }
+        directory.delete();
+    }
+
+    /**
+     * 递归复制目录
+     *
+     * @param source 源目录
+     * @param target 目标目录
+     */
+    private void copyDirectory(File source, File target) {
+        try {
+            if (source.isDirectory()) {
+                // 如果目标目录不存在，创建它
+                if (!target.exists()) {
+                    target.mkdirs();
+                }
+                // 获取源目录下的所有文件和子目录
+                String[] files = source.list();
+                if (files != null) {
+                    for (String file : files) {
+                        File srcFile = new File(source, file);
+                        File destFile = new File(target, file);
+                        // 递归复制
+                        copyDirectory(srcFile, destFile);
+                    }
+                }
+            } else {
+                // 如果是文件，直接复制
+                java.nio.file.Files.copy(
+                    source.toPath(),
+                    target.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                );
+            }
+        } catch (Exception e) {
+            log.error("复制目录失败: source={}, target={}", source.getAbsolutePath(), target.getAbsolutePath(), e);
+            throw new BusinessException(ErrorCode.SYSTEM_ERROR, "复制文件失败: " + e.getMessage());
+        }
     }
 
 }
