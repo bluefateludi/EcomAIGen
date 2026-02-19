@@ -160,7 +160,7 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>
     @GetMapping(value = "/chat/gen/code", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @RateLimit(limitType = RateLimitType.USER, rate = 5, rateInterval = 60, message = "AI 对话请求过于频繁，请稍后再试")
     @Override
-    public Flux<String> chatToGenCode(Long appId, String message, User loginUser) {
+    public Flux<String> chatToGenCode(Long appId, String message, boolean editMode, User loginUser) {
         // 1. 参数校验
         ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "应用 ID 不能为空");
         ThrowUtils.throwIf(StrUtil.isBlank(message), ErrorCode.PARAMS_ERROR, "用户消息不能为空");
@@ -178,12 +178,26 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>
         if (codeGenTypeEnum == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "不支持的代码生成类型");
         }
-        // 5. 通过校验后，添加用户消息到对话历史
+
+        // 5. 边界情况处理：如果是编辑模式但没有历史对话，自动切换为全量生成模式
+        if (editMode) {
+            long chatHistoryCount = chatHistoryService.count(
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<com.example.usercenterpractice.model.domain.ChatHistory>()
+                    .eq("appId", appId)
+                    .eq("messageType", ChatHistoryMessageTypeEnum.AI.getValue())
+            );
+            if (chatHistoryCount == 0) {
+                log.info("appId: {} 没有历史对话记录，自动切换为全量生成模式", appId);
+                editMode = false;
+            }
+        }
+
+        // 6. 通过校验后，添加用户消息到对话历史
         chatHistoryService.addChatMessage(appId, message, ChatHistoryMessageTypeEnum.USER.getValue(),
                 loginUser.getId());
-        // 6. 调用 AI 生成代码（流式）
-        Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId);
-        // 7. 收集 AI 响应内容并在完成后记录到对话历史
+        // 7. 调用 AI 生成代码（流式），传递 editMode 参数
+        Flux<String> codeStream = aiCodeGeneratorFacade.generateAndSaveCodeStream(message, codeGenTypeEnum, appId, editMode);
+        // 8. 收集 AI 响应内容并在完成后记录到对话历史
         return streamHandlerExecutor.doExecute(codeStream, chatHistoryService, appId, loginUser, codeGenTypeEnum);
 
     }

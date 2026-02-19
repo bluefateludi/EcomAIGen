@@ -313,6 +313,7 @@ public class AppController {
      *
      * @param appId   应用 ID（支持字符串格式以避免前端大数字精度丢失）
      * @param message 用户消息
+     * @param editMode 编辑模式：true=增量编辑（修改现有代码），false=全量生成（创建新代码）
      * @param request 请求对象
      * @return 生成结果流
      */
@@ -320,6 +321,7 @@ public class AppController {
     @GetMapping(value = "/chat/gen/code", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public Flux<ServerSentEvent<String>> chatToGenCode(@RequestParam String appId,
                                                        @RequestParam String message,
+                                                       @RequestParam(defaultValue = "false") boolean editMode,
                                                        HttpServletRequest request) {
         // 参数校验
         ThrowUtils.throwIf(StrUtil.isBlank(appId), ErrorCode.PARAMS_ERROR, "应用ID无效");
@@ -333,8 +335,8 @@ public class AppController {
         ThrowUtils.throwIf(parsedAppId <= 0, ErrorCode.PARAMS_ERROR, "应用ID无效");
         // 获取当前登录用户
         User loginUser = userService.getLoginUser(request);
-        // 调用服务生成代码（流式）
-        Flux<String> contentFlux = appService.chatToGenCode(parsedAppId, message, loginUser);
+        // 调用服务生成代码（流式），传递 editMode 参数
+        Flux<String> contentFlux = appService.chatToGenCode(parsedAppId, message, editMode, loginUser);
         // 转换为 ServerSentEvent 格式
         return contentFlux
                 .map(chunk -> {

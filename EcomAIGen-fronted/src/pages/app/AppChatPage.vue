@@ -484,10 +484,15 @@ const generateCode = async (userMessage: string, aiMessageIndex: number) => {
     // 获取 axios 配置的 baseURL
     const baseURL = request.defaults.baseURL || API_BASE_URL
 
+    // 判断是否有已生成的代码（用于决定是否使用编辑模式）
+    const hasExistingCodeValue = messages.value.filter(m => m.type === 'ai' && m.content).length > 0
+    const editMode = hasExistingCodeValue ? 'true' : 'false'
+
     // 构建URL参数
     const params = new URLSearchParams({
       appId: appId.value || '',
       message: userMessage,
+      editMode: editMode,  // 添加 editMode 参数
     })
 
     const url = `${baseURL}/app/chat/gen/code?${params}`

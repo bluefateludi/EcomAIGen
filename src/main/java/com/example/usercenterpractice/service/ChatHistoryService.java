@@ -30,4 +30,15 @@ public interface ChatHistoryService extends IService<ChatHistory> {
                                                User loginUser);
 
     int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount);
+
+    /**
+     * 加载对话历史到记忆中（支持控制是否跳过最新记录）
+     *
+     * @param appId      应用 ID
+     * @param chatMemory 聊天记忆对象
+     * @param maxCount   最大加载数量
+     * @param skipLatest 是否跳过最新一条记录（true=跳过，false=包含）
+     * @return 实际加载的数量
+     */
+    int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount, boolean skipLatest);
 }

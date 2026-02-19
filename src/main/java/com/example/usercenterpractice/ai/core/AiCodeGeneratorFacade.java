@@ -3,6 +3,7 @@ package com.example.usercenterpractice.ai.core;
 import cn.hutool.json.JSONUtil;
 import com.example.usercenterpractice.ai.AiCodeGeneratorService;
 import com.example.usercenterpractice.ai.AiCodeGeneratorServiceFactory;
+import com.example.usercenterpractice.ai.context.CodeContextInjector;
 import com.example.usercenterpractice.ai.core.builder.VueProjectBuilder;
 import com.example.usercenterpractice.ai.model.HtmlCodeResult;
 import com.example.usercenterpractice.ai.model.MultiFileCodeResult;
@@ -37,6 +38,9 @@ public class AiCodeGeneratorFacade {
 
     @Resource
     private VueProjectBuilder vueProjectBuilder;
+
+    @Resource
+    private CodeContextInjector codeContextInjector;
 
     /**
      * 统一入口：根据类型生成并保存代码（使用 appId）
@@ -76,25 +80,34 @@ public class AiCodeGeneratorFacade {
      * @param userMessage     用户提示词
      * @param codeGenTypeEnum 生成类型
      * @param appId           应用 ID
+     * @param editMode        是否为编辑模式（true=增量编辑，false=全量生成）
      */
-    public Flux<String> generateAndSaveCodeStream(String userMessage, CodeGenTypeEnum codeGenTypeEnum, Long appId) {
+    public Flux<String> generateAndSaveCodeStream(String userMessage, CodeGenTypeEnum codeGenTypeEnum, Long appId, boolean editMode) {
         if (codeGenTypeEnum == null) {
             throw new BusinessException(ErrorCode.SYSTEM_ERROR, "生成类型为空");
         }
 
-        // 根据 appId 获取对应的 AI 服务实例
-        AiCodeGeneratorService aiCodeGeneratorService = aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId, codeGenTypeEnum);
+        // 对于 HTML 和 MULTI_FILE 类型，在编辑模式下注入现有代码上下文
+        String enhancedMessage = userMessage;
+        if (editMode && (codeGenTypeEnum == CodeGenTypeEnum.HTML || codeGenTypeEnum == CodeGenTypeEnum.MULTI_FILE)) {
+            enhancedMessage = codeContextInjector.injectExistingCode(appId, codeGenTypeEnum, userMessage, true);
+            log.info("编辑模式：为 appId: {} 注入代码上下文，消息长度: {} -> {}", appId, userMessage.length(), enhancedMessage.length());
+        }
+
+        // 根据 appId 获取对应的 AI 服务实例（传递 editMode 用于历史加载判断）
+        AiCodeGeneratorService aiCodeGeneratorService = aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId, codeGenTypeEnum, editMode);
 
         return switch (codeGenTypeEnum) {
             case HTML -> {
-                Flux<String> codeStream = aiCodeGeneratorService.generateHtmlCodeStream(userMessage);
+                Flux<String> codeStream = aiCodeGeneratorService.generateHtmlCodeStream(enhancedMessage);
                 yield processCodeStream(codeStream, CodeGenTypeEnum.HTML, appId);
             }
             case MULTI_FILE -> {
-                Flux<String> codeStream = aiCodeGeneratorService.generateMultiFileCodeStream(userMessage);
+                Flux<String> codeStream = aiCodeGeneratorService.generateMultiFileCodeStream(enhancedMessage);
                 yield processCodeStream(codeStream, CodeGenTypeEnum.MULTI_FILE, appId);
             }
             case VUE_PROJECT -> {
+                // Vue 项目使用工具系统，不需要注入代码上下文
                 TokenStream tokenStream = aiCodeGeneratorService.generateVueProjectCodeStream(appId, userMessage);
                 yield processTokenStream(tokenStream, appId);
             }
