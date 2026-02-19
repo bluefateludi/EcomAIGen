@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
 import com.example.usercenterpractice.ai.AiCodeGenTypeRoutingService;
+import com.example.usercenterpractice.ai.AiCodeGenTypeRoutingServiceFactory;
 import com.example.usercenterpractice.ai.core.AiCodeGeneratorFacade;
 import com.example.usercenterpractice.ai.core.builder.VueProjectBuilder;
 import com.example.usercenterpractice.ai.handler.StreamHandlerExecutor;
@@ -23,6 +24,8 @@ import com.example.usercenterpractice.model.enums.ChatHistoryMessageTypeEnum;
 import com.example.usercenterpractice.model.enums.CodeGenTypeEnum;
 import com.example.usercenterpractice.model.vo.AppVO;
 import com.example.usercenterpractice.model.vo.UserVO;
+import com.example.usercenterpractice.ratelimit.annotation.RateLimit;
+import com.example.usercenterpractice.ratelimit.enums.RateLimitType;
 import com.example.usercenterpractice.service.AppService;
 import com.example.usercenterpractice.service.ChatHistoryService;
 import com.example.usercenterpractice.service.ScreenshotService;
@@ -31,7 +34,9 @@ import com.github.xiaoymin.knife4j.core.util.StrUtil;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
 import reactor.core.publisher.Flux;
 
 import java.io.File;
@@ -52,8 +57,6 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>
     @Resource
     private UserService userService;
     @Resource
-    private AiCodeGenTypeRoutingService aiCodeGenTypeRoutingService;
-    @Resource
     private AiCodeGeneratorFacade aiCodeGeneratorFacade;
     @Resource
     private StreamHandlerExecutor streamHandlerExecutor;
@@ -61,6 +64,11 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>
     private VueProjectBuilder vueProjectBuilder;
     @Resource
     private ScreenshotService screenshotService;
+
+    @Resource
+    private AiCodeGenTypeRoutingServiceFactory aiCodeGenTypeRoutingServiceFactory;
+
+
 
     @Resource
     @Lazy
@@ -71,14 +79,14 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>
         // 参数校验
         String initPrompt = appAddRequest.getInitPrompt();
         ThrowUtils.throwIf(StrUtil.isBlank(initPrompt), ErrorCode.PARAMS_ERROR, "初始化 prompt 不能为空");
-        // 构造入库对象
+        // 使用 AI 智能选择代码生成类型（多例模式）
+        AiCodeGenTypeRoutingService routingService = aiCodeGenTypeRoutingServiceFactory.createAiCodeGenTypeRoutingService();
+        CodeGenTypeEnum selectedCodeGenType = routingService.routeCodeGenType(initPrompt);  // 构造入库对象
         App app = new App();
         BeanUtil.copyProperties(appAddRequest, app);
         app.setUserId(loginUser.getId());
         // 应用名称暂时为 initPrompt 前 12 位
         app.setAppName(initPrompt.substring(0, Math.min(initPrompt.length(), 12)));
-        // 使用 AI 智能选择代码生成类型
-        CodeGenTypeEnum selectedCodeGenType = aiCodeGenTypeRoutingService.routeCodeGenType(initPrompt);
         app.setCodeGenType(selectedCodeGenType.getValue());
         // 使用 MyBatis-Plus 的 save 方法插入数据库
         boolean result = this.save(app);
@@ -149,6 +157,8 @@ public class AppServiceImpl extends ServiceImpl<AppMapper, App>
         }).collect(Collectors.toList());
     }
 
+    @GetMapping(value = "/chat/gen/code", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    @RateLimit(limitType = RateLimitType.USER, rate = 5, rateInterval = 60, message = "AI 对话请求过于频繁，请稍后再试")
     @Override
     public Flux<String> chatToGenCode(Long appId, String message, User loginUser) {
         // 1. 参数校验

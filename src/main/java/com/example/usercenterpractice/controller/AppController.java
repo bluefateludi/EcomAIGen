@@ -24,6 +24,8 @@ import com.example.usercenterpractice.service.UserService;
 import com.github.xiaoymin.knife4j.core.util.StrUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -41,6 +43,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/app")
 public class AppController {
@@ -162,7 +165,13 @@ public class AppController {
      * @param appQueryRequest 查询请求
      * @return 精选应用列表
      */
+
     @PostMapping("/good/list/page/vo")
+    @Cacheable(
+            value = "good_app_page",
+            key = "T(com.example.usercenterpractice.utils.CacheKeyUtils).generateKey(#appQueryRequest)",
+            condition = "#appQueryRequest.pageNum <= 10"
+    )
     public BaseResponse<Page<AppVO>> listGoodAppVOByPage(@RequestBody AppQueryRequest appQueryRequest) {
         ThrowUtils.throwIf(appQueryRequest == null, ErrorCode.PARAMS_ERROR);
         // 限制每页最多 20 个
@@ -301,7 +310,24 @@ public class AppController {
                                 .event("done")
                                 .data("")
                                 .build()
-                ));
+                ))
+                .onErrorResume((Throwable error) -> {
+                    // 处理异常并发送 business-error 事件
+                    log.error("代码生成失败", error);
+                    String errorMessage = error.getMessage();
+                    if (error instanceof BusinessException) {
+                        errorMessage = ((BusinessException) error).getMessage();
+                    }
+                    // 构建错误信息 JSON
+                    Map<String, String> errorData = Map.of("message", errorMessage != null ? errorMessage : "生成过程中出现错误");
+                    String errorJson = JSONUtil.toJsonStr(errorData);
+                    return Flux.just(
+                            ServerSentEvent.<String>builder()
+                                    .event("business-error")
+                                    .data(errorJson)
+                                    .build()
+                    );
+                });
     }
 
     @RestController
