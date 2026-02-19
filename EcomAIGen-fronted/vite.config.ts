@@ -18,6 +18,7 @@ export default defineConfig({
         target: 'http://localhost:8123',
         changeOrigin: true,
         secure: false,
+        // 不需要 rewrite，保持原路径
       },
     },
   },

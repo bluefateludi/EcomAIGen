@@ -24,7 +24,7 @@ import java.time.LocalDateTime;
 
 @Slf4j
 @RestController
-@RequestMapping("/api/chat/history")
+@RequestMapping("/chat/history")
 public class ChatHistoryController {
 
 
