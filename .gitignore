@@ -44,5 +44,12 @@ repository/
 ## 其他忽略文件 ##
 *.http
 nul
-*.md
-!README.md
+
+## 前端项目忽略 ##
+EcomAIGen-fronted/node_modules/
+EcomAIGen-fronted/dist/
+EcomAIGen-fronted/.DS_Store
+EcomAIGen-fronted/*.local
+EcomAIGen-fronted/.idea/
+EcomAIGen-fronted/.vscode/
+EcomAIGen-fronted/*.tsbuildinfo
