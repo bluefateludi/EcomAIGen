@@ -378,18 +378,50 @@ public class AppController {
         // 应用部署根目录（用于部署访问）
         private static final String DEPLOY_ROOT_DIR = System.getProperty("user.dir") + "/tmp/code_deploy";
 
+        // 应用生成根目录（用于预览）
+        private static final String PREVIEW_ROOT_DIR = System.getProperty("user.dir") + "/tmp/code_output";
+
         /**
-         * 提供静态资源访问，支持目录重定向
+         * 提供部署应用静态资源访问
          * 访问格式：http://localhost:8123/api/static/{deployKey}[/{fileName}]
          */
         @GetMapping("/{deployKey}/**")
-        public ResponseEntity<Resource> serveStaticResource(
+        public ResponseEntity<Resource> serveDeployResource(
                 @PathVariable String deployKey,
                 HttpServletRequest request) {
+            return serveStaticResource(deployKey, request, DEPLOY_ROOT_DIR);
+        }
+
+        /**
+         * 提供预览应用静态资源访问
+         * 访问格式：http://localhost:8123/api/static/preview/{codeGenType}_{appId}[/{fileName}]
+         */
+        @GetMapping("/preview/{path}/**")
+        public ResponseEntity<Resource> servePreviewResource(
+                @PathVariable String path,
+                HttpServletRequest request) {
+            return serveStaticResource(path, request, PREVIEW_ROOT_DIR);
+        }
+
+        /**
+         * 通用静态资源服务方法
+         */
+        private ResponseEntity<Resource> serveStaticResource(
+                String resourceKey,
+                HttpServletRequest request,
+                String rootDir) {
             try {
                 // 获取资源路径
                 String resourcePath = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-                resourcePath = resourcePath.substring(("/static/" + deployKey).length());
+                // 根据不同的端点类型，移除不同的前缀
+                String prefixToRemove;
+                if (rootDir.equals(DEPLOY_ROOT_DIR)) {
+                    prefixToRemove = "/static/" + resourceKey;
+                } else {
+                    prefixToRemove = "/static/preview/" + resourceKey;
+                }
+                resourcePath = resourcePath.substring(prefixToRemove.length());
+
                 // 如果是目录访问（不带斜杠），重定向到带斜杠的URL
                 if (resourcePath.isEmpty()) {
                     HttpHeaders headers = new HttpHeaders();
@@ -401,7 +433,7 @@ public class AppController {
                     resourcePath = "/index.html";
                 }
                 // 构建文件路径
-                String filePath = DEPLOY_ROOT_DIR + "/" + deployKey + resourcePath;
+                String filePath = rootDir + "/" + resourceKey + resourcePath;
                 File file = new File(filePath);
                 // 检查文件是否存在
                 if (!file.exists()) {
