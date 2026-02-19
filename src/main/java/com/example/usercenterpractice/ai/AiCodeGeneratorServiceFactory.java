@@ -76,25 +76,7 @@ public class AiCodeGeneratorServiceFactory {
      */
     public AiCodeGeneratorService getAiCodeGeneratorService(long appId, CodeGenTypeEnum codeGenType) {
         String cacheKey = buildCacheKey(appId, codeGenType);
-        return serviceCache.get(cacheKey, key -> createAiCodeGeneratorService(appId, codeGenType, false));
-    }
-
-    /**
-     * 根据 appId、代码生成类型和编辑模式获取服务（带缓存）
-     *
-     * @param appId      应用 ID
-     * @param codeGenType 代码生成类型
-     * @param editMode   是否为编辑模式（true=包含最新历史记录，false=跳过最新）
-     * @return AI 服务实例
-     */
-    public AiCodeGeneratorService getAiCodeGeneratorService(long appId, CodeGenTypeEnum codeGenType, boolean editMode) {
-        // 编辑模式下不使用缓存，确保每次都能获取最新的历史记录
-        if (editMode) {
-            return createAiCodeGeneratorService(appId, codeGenType, true);
-        }
-        // 非编辑模式使用缓存
-        String cacheKey = buildCacheKey(appId, codeGenType);
-        return serviceCache.get(cacheKey, key -> createAiCodeGeneratorService(appId, codeGenType, false));
+        return serviceCache.get(cacheKey, key -> createAiCodeGeneratorService(appId, codeGenType));
     }
 
     /**
@@ -129,7 +111,7 @@ public class AiCodeGeneratorServiceFactory {
     /**
      * 创建新的 AI 服务实例
      */
-    private AiCodeGeneratorService createAiCodeGeneratorService(long appId, CodeGenTypeEnum codeGenType, boolean editMode) {
+    private AiCodeGeneratorService createAiCodeGeneratorService(long appId, CodeGenTypeEnum codeGenType) {
         // 根据 appId 构建独立的对话记忆
         MessageWindowChatMemory chatMemory = MessageWindowChatMemory
                 .builder()
@@ -138,9 +120,7 @@ public class AiCodeGeneratorServiceFactory {
                 .maxMessages(20)
                 .build();
         // 从数据库加载历史对话到记忆中
-        // editMode=true 时包含最新记录（增量编辑需要看到之前生成的代码）
-        // editMode=false 时跳过最新记录（避免看到未完成的响应）
-        chatHistoryService.loadChatHistoryToMemory(appId, chatMemory, 20, !editMode);
+        chatHistoryService.loadChatHistoryToMemory(appId, chatMemory, 20);
         // 根据代码生成类型选择不同的模型配置
         // 根据代码生成类型选择不同的模型配置
         return switch (codeGenType) {

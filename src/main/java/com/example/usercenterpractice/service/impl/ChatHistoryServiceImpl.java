@@ -135,18 +135,13 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
     }
 
     @Override
-    public int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount, boolean skipLatest) {
+    public int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount) {
         try {
-            // 根据 skipLatest 参数构建不同的 SQL
-            String limitSql = skipLatest
-                ? "LIMIT 1, " + maxCount      // 跳过最新一条记录
-                : "LIMIT " + maxCount;         // 包含所有记录
-
-            // 直接构造查询条件，按 createTime 降序
+            // 直接构造查询条件，按 createTime 降序，跳过最新的1条记录，使用 LIMIT 限制返回数量
             QueryWrapper<ChatHistory> queryWrapper = new QueryWrapper<ChatHistory>()
                     .eq("appId", appId)
                     .orderByDesc("createTime")
-                    .last(limitSql);
+                    .last("LIMIT 1, " + maxCount);
             List<ChatHistory> historyList = this.list(queryWrapper);
             if (CollUtil.isEmpty(historyList)) {
                 return 0;
@@ -166,21 +161,13 @@ public class ChatHistoryServiceImpl extends ServiceImpl<ChatHistoryMapper, ChatH
                     loadedCount++;
                 }
             }
-            log.info("成功为 appId: {} 加载了 {} 条历史对话 (skipLatest={})", appId, loadedCount, skipLatest);
+            log.info("成功为 appId: {} 加载了 {} 条历史对话", appId, loadedCount);
             return loadedCount;
         } catch (Exception e) {
             log.error("加载历史对话失败，appId: {}, error: {}", appId, e.getMessage(), e);
             // 加载失败不影响系统运行，只是没有历史上下文
             return 0;
         }
-    }
-
-    /**
-     * 兼容旧方法：默认跳过最新一条记录
-     */
-    @Override
-    public int loadChatHistoryToMemory(Long appId, MessageWindowChatMemory chatMemory, int maxCount) {
-        return loadChatHistoryToMemory(appId, chatMemory, maxCount, true);
     }
 
 }
