@@ -6,6 +6,7 @@ import com.example.usercenterpractice.annotation.AuthCheck;
 import com.example.usercenterpractice.common.BaseResponse;
 import com.example.usercenterpractice.common.ResultUtils;
 import com.example.usercenterpractice.constant.UserConstants;
+import com.example.usercenterpractice.exception.BusinessException;
 import com.example.usercenterpractice.exception.ErrorCode;
 import com.example.usercenterpractice.exception.ThrowUtils;
 import com.example.usercenterpractice.model.domain.ChatHistory;
@@ -40,12 +41,19 @@ private UserService userService;
      * @return 对话历史分页
      */
     @GetMapping("/app/{appId}")
-    public BaseResponse<Page<ChatHistory>> listAppChatHistory(@PathVariable Long appId,
+    public BaseResponse<Page<ChatHistory>> listAppChatHistory(@PathVariable String appId,
                                                               @RequestParam(defaultValue = "10") int pageSize,
                                                               @RequestParam(required = false) LocalDateTime lastCreateTime,
                                                               HttpServletRequest request) {
+        ThrowUtils.throwIf(appId == null || appId.isEmpty(), ErrorCode.PARAMS_ERROR, "应用ID不能为空");
+        Long parsedAppId;
+        try {
+            parsedAppId = Long.parseLong(appId);
+        } catch (NumberFormatException e) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "应用ID格式不正确");
+        }
         User loginUser = userService.getLoginUser(request);
-        Page<ChatHistory> result = chatHistoryService.listAppChatHistoryByPage(appId, pageSize, lastCreateTime, loginUser);
+        Page<ChatHistory> result = chatHistoryService.listAppChatHistoryByPage(parsedAppId, pageSize, lastCreateTime, loginUser);
         return ResultUtils.success(result);
     }
 

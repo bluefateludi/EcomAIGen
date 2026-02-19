@@ -91,9 +91,16 @@ public class UserController {
      */
     @GetMapping("/get")
     @AuthCheck(mustRole = UserConstants.ADMIN_ROLE)
-    public BaseResponse<User> getUserById(long id) {
-        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
-        User user = userService.getById(id);
+    public BaseResponse<User> getUserById(@RequestParam("id") String id) {
+        ThrowUtils.throwIf(StrUtil.isBlank(id), ErrorCode.PARAMS_ERROR, "用户ID不能为空");
+        Long userId;
+        try {
+            userId = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户ID格式不正确");
+        }
+        ThrowUtils.throwIf(userId <= 0, ErrorCode.PARAMS_ERROR);
+        User user = userService.getById(userId);
         ThrowUtils.throwIf(user == null, ErrorCode.NOT_FOUND_ERROR);
         return ResultUtils.success(user);
     }
@@ -102,7 +109,7 @@ public class UserController {
      * 根据 id 获取包装类
      */
     @GetMapping("/get/vo")
-    public BaseResponse<UserVO> getUserVOById(long id) {
+    public BaseResponse<UserVO> getUserVOById(@RequestParam("id") String id) {
         BaseResponse<User> response = getUserById(id);
         User user = response.getData();
         return ResultUtils.success(userService.getUserVO(user));

@@ -258,17 +258,51 @@ public class AppController {
     }
 
     /**
+     * 根据 id 获取应用详情（普通用户接口，任何用户可访问）
+     *
+     * @param id 应用 id（支持字符串格式以避免前端大数字精度丢失）
+     * @return 应用详情
+     */
+    @GetMapping("/get/vo")
+    public BaseResponse<AppVO> getAppVOById(@RequestParam("id") String id) {
+        log.info("接收到获取应用详情请求，id={}, id类型={}", id, id.getClass().getSimpleName());
+        ThrowUtils.throwIf(StrUtil.isBlank(id), ErrorCode.PARAMS_ERROR, "应用ID不能为空");
+        // 尝试转换为 Long
+        Long appId;
+        try {
+            appId = Long.parseLong(id);
+            log.info("解析后的appId={}", appId);
+        } catch (NumberFormatException e) {
+            log.error("ID格式错误，id={}", id);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "应用ID格式不正确");
+        }
+        // 查询数据库
+        App app = appService.getById(appId);
+        log.info("数据库查询结果: {}", app != null ? "找到应用" : "未找到");
+        ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
+        // 获取封装类
+        return ResultUtils.success(appService.getAppVO(app));
+    }
+
+    /**
      * 管理员根据 id 获取应用详情
      *
-     * @param id 应用 id
+     * @param id 应用 id（支持字符串格式以避免前端大数字精度丢失）
      * @return 应用详情
      */
     @GetMapping("/admin/get/vo")
     @AuthCheck(mustRole = UserConstants.ADMIN_ROLE)
-    public BaseResponse<AppVO> getAppVOByIdByAdmin(long id) {
-        ThrowUtils.throwIf(id <= 0, ErrorCode.PARAMS_ERROR);
+    public BaseResponse<AppVO> getAppVOByIdByAdmin(@RequestParam("id") String id) {
+        ThrowUtils.throwIf(StrUtil.isBlank(id), ErrorCode.PARAMS_ERROR, "应用ID不能为空");
+        Long appId;
+        try {
+            appId = Long.parseLong(id);
+        } catch (NumberFormatException e) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "应用ID格式不正确");
+        }
+        ThrowUtils.throwIf(appId <= 0, ErrorCode.PARAMS_ERROR);
         // 查询数据库
-        App app = appService.getById(id);
+        App app = appService.getById(appId);
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR);
         // 获取封装类
         return ResultUtils.success(appService.getAppVO(app));
@@ -277,23 +311,30 @@ public class AppController {
     /**
      * 应用聊天生成代码（流式 SSE）
      *
-     * @param appId   应用 ID
+     * @param appId   应用 ID（支持字符串格式以避免前端大数字精度丢失）
      * @param message 用户消息
      * @param request 请求对象
      * @return 生成结果流
      */
 
     @GetMapping(value = "/chat/gen/code", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public Flux<ServerSentEvent<String>> chatToGenCode(@RequestParam Long appId,
+    public Flux<ServerSentEvent<String>> chatToGenCode(@RequestParam String appId,
                                                        @RequestParam String message,
                                                        HttpServletRequest request) {
         // 参数校验
-        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "应用ID无效");
+        ThrowUtils.throwIf(StrUtil.isBlank(appId), ErrorCode.PARAMS_ERROR, "应用ID无效");
         ThrowUtils.throwIf(StrUtil.isBlank(message), ErrorCode.PARAMS_ERROR, "用户消息不能为空");
+        Long parsedAppId;
+        try {
+            parsedAppId = Long.parseLong(appId);
+        } catch (NumberFormatException e) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "应用ID格式不正确");
+        }
+        ThrowUtils.throwIf(parsedAppId <= 0, ErrorCode.PARAMS_ERROR, "应用ID无效");
         // 获取当前登录用户
         User loginUser = userService.getLoginUser(request);
         // 调用服务生成代码（流式）
-        Flux<String> contentFlux = appService.chatToGenCode(appId, message, loginUser);
+        Flux<String> contentFlux = appService.chatToGenCode(parsedAppId, message, loginUser);
         // 转换为 ServerSentEvent 格式
         return contentFlux
                 .map(chunk -> {
@@ -417,18 +458,25 @@ public class AppController {
     /**
      * 下载应用代码
      *
-     * @param appId    应用ID
+     * @param appId    应用ID（支持字符串格式以避免前端大数字精度丢失）
      * @param request  请求
      * @param response 响应
      */
     @GetMapping("/download/{appId}")
-    public void downloadAppCode(@PathVariable Long appId,
+    public void downloadAppCode(@PathVariable String appId,
                                 HttpServletRequest request,
                                 HttpServletResponse response) {
         // 1. 基础校验
-        ThrowUtils.throwIf(appId == null || appId <= 0, ErrorCode.PARAMS_ERROR, "应用ID无效");
+        ThrowUtils.throwIf(StrUtil.isBlank(appId), ErrorCode.PARAMS_ERROR, "应用ID无效");
+        Long parsedAppId;
+        try {
+            parsedAppId = Long.parseLong(appId);
+        } catch (NumberFormatException e) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "应用ID格式不正确");
+        }
+        ThrowUtils.throwIf(parsedAppId <= 0, ErrorCode.PARAMS_ERROR, "应用ID无效");
         // 2. 查询应用信息
-        App app = appService.getById(appId);
+        App app = appService.getById(parsedAppId);
         ThrowUtils.throwIf(app == null, ErrorCode.NOT_FOUND_ERROR, "应用不存在");
         // 3. 权限校验：只有应用创建者可以下载代码
         User loginUser = userService.getLoginUser(request);
@@ -437,7 +485,7 @@ public class AppController {
         }
         // 4. 构建应用代码目录路径（生成目录，非部署目录）
         String codeGenType = app.getCodeGenType();
-        String sourceDirName = codeGenType + "_" + appId;
+        String sourceDirName = codeGenType + "_" + parsedAppId;
         String sourceDirPath = AppConstant.CODE_OUTPUT_ROOT_DIR + File.separator + sourceDirName;
         // 5. 检查代码目录是否存在
         File sourceDir = new File(sourceDirPath);
