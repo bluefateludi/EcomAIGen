@@ -1,9 +1,5 @@
 package com.example.usercenterpractice.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.annotation.Resource;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
@@ -11,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.cache.RedisCacheConfiguration;
 import org.springframework.data.redis.cache.RedisCacheManager;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.JdkSerializationRedisSerializer;
 import org.springframework.data.redis.serializer.RedisSerializationContext;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -25,13 +21,6 @@ public class RedisCacheManagerConfig {
 
         @Bean
         public CacheManager cacheManager() {
-                // 配置 ObjectMapper 支持 Java8 时间类型
-                ObjectMapper objectMapper = new ObjectMapper();
-                objectMapper.registerModule(new JavaTimeModule());
-                objectMapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
-
-                // 创建 GenericJackson2JsonRedisSerializer，启用类型信息
-                GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
 
                 // 默认配置
                 RedisCacheConfiguration defaultConfig = RedisCacheConfiguration.defaultCacheConfig()
@@ -40,9 +29,10 @@ public class RedisCacheManagerConfig {
                                 // key 使用 String 序列化器
                                 .serializeKeysWith(RedisSerializationContext.SerializationPair
                                                 .fromSerializer(new StringRedisSerializer()))
-                                // value 使用 JSON 序列化器（支持复杂对象）
+                                // value 使用 JDK 序列化器（保持类型信息）
+                                // 注意：参考教程项目，不使用JSON序列化以避免类型丢失问题
                                 .serializeValuesWith(RedisSerializationContext.SerializationPair
-                                                .fromSerializer(jsonSerializer));
+                                                .fromSerializer(new org.springframework.data.redis.serializer.JdkSerializationRedisSerializer()));
 
                 return RedisCacheManager.builder(redisConnectionFactory)
                                 .cacheDefaults(defaultConfig)
