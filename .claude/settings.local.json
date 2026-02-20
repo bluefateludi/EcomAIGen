@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(git -C \"d:/Program code/java/user-centerpractice\" log --oneline -10)",
+      "Bash(git -C \"d:/Program code/java/user-centerpractice\" status)",
+      "Bash(git -C \"d:/Program code/java/user-centerpractice\" diff HEAD -- src/main/java/com/example/usercenterpractice/ai/AiCodeGeneratorServiceFactory.java src/main/java/com/example/usercenterpractice/ai/AiCodeGeneratorService.java src/main/java/com/example/usercenterpractice/ai/core/AiCodeGeneratorFacade.java src/main/java/com/example/usercenterpractice/ai/handler/StreamHandlerExecutor.java src/main/java/com/example/usercenterpractice/ai/handler/JsonMessageStreamHandler.java src/main/resources/Prompt/codegen-html-system-prompt.txt src/main/resources/Prompt/codegen-multi-file-system-prompt.txt)"
     ]
   }
 }

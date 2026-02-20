@@ -129,9 +129,11 @@ public class AiCodeGeneratorServiceFactory {
                 // 使用 deepseek-chat 而非 deepseek-reasoner，因为 LangChain4j 不支持 DeepSeek 的 reasoning_content 字段
                 StreamingChatModel streamingChatModel = SpringContextUtil.getBean("streamingChatModelPrototype", StreamingChatModel.class);
                 yield AiServices.builder(AiCodeGeneratorService.class)
+                        .chatModel(chatModel)
                         .streamingChatModel(streamingChatModel)
                         .chatMemoryProvider(memoryId -> chatMemory)
                         .tools(toolManager.getAllTools())
+                        .maxSequentialToolsInvocations(20)
                         .inputGuardrails(new PromptSafetyInputGuardrail())  // 添加输入护轨
                         .hallucinatedToolNameStrategy(toolExecutionRequest -> ToolExecutionResultMessage.from(
                                 toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name()
@@ -149,6 +151,7 @@ public class AiCodeGeneratorServiceFactory {
                         .chatModel(chatModel)
                         .streamingChatModel(openAiStreamingChatModel)
                         .chatMemory(chatMemory)
+                        .inputGuardrails(new PromptSafetyInputGuardrail())
                         .build();
             }
             default -> throw new BusinessException(ErrorCode.SYSTEM_ERROR,
