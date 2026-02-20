@@ -126,7 +126,7 @@ public class AiCodeGeneratorServiceFactory {
         return switch (codeGenType) {
             case VUE_PROJECT -> {
                 // 使用多例模式的 StreamingChatModel 解决并发问题
-                // 使用 deepseek-chat 而非 deepseek-reasoner，因为 LangChain4j 不支持 DeepSeek 的 reasoning_content 字段
+                // 使用 deepseek-chat 模型，避免 reasoning_content 字段错误
                 StreamingChatModel streamingChatModel = SpringContextUtil.getBean("streamingChatModelPrototype", StreamingChatModel.class);
                 yield AiServices.builder(AiCodeGeneratorService.class)
                         .chatModel(chatModel)
@@ -139,10 +139,6 @@ public class AiCodeGeneratorServiceFactory {
                                 toolExecutionRequest, "Error: there is no tool called " + toolExecutionRequest.name()
                         ))
                         .build();
-
-
-
-
             }
             case HTML, MULTI_FILE -> {
                 // 使用多例模式的 StreamingChatModel 解决并发问题

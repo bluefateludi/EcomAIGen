@@ -52,7 +52,7 @@ public class AiCodeGeneratorFacade {
         }
 
         // 根据 appId 动态获取 AI 服务实例
-        AiCodeGeneratorService aiCodeGeneratorService = aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId);
+        AiCodeGeneratorService aiCodeGeneratorService = aiCodeGeneratorServiceFactory.getAiCodeGeneratorService(appId, codeGenTypeEnum);
 
         return switch (codeGenTypeEnum) {
             case HTML -> {
