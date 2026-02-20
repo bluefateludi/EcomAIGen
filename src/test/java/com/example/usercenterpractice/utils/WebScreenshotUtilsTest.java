@@ -13,7 +13,7 @@ public class WebScreenshotUtilsTest {
 
     @Test
     void saveWebPageScreenshot() {
-        String testUrl = "https://www.codefather.cn";
+        String testUrl = "https://github.com/bluefateludi/EcomAIGen";
         String webPageScreenshot = WebScreenshotUtils.saveWebPageScreenshot(testUrl);
         Assertions.assertNotNull(webPageScreenshot);
     }

@@ -3,12 +3,12 @@
     <div class="footer-content">
       <p class="copyright">
         <a
-          href="https://www.codefather.cn"
+          href="https://github.com/bluefateludi/EcomAIGen"
           target="_blank"
           rel="noopener noreferrer"
           class="author-link"
         >
-          编程导航原创项目 by 程序员鱼皮
+          电商网站生成项目 by bluefateludi
         </a>
       </p>
     </div>
