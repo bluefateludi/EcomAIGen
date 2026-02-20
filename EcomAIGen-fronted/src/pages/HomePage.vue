@@ -281,16 +281,12 @@ onMounted(() => {
   margin: 0;
   padding: 0;
   min-height: 100vh;
-  background:
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 8%, #e2e8f0 20%, #cbd5e1 100%),
-    radial-gradient(circle at 20% 80%, rgba(59, 130, 246, 0.15) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.12) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(16, 185, 129, 0.08) 0%, transparent 50%);
+  background: var(--bg-secondary);
   position: relative;
   overflow: hidden;
 }
 
-/* 科技感网格背景 */
+/* Subtle gradient background */
 #homePage::before {
   content: '';
   position: absolute;
@@ -298,21 +294,13 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background-image:
-    linear-gradient(rgba(59, 130, 246, 0.05) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
-    linear-gradient(rgba(139, 92, 246, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(139, 92, 246, 0.04) 1px, transparent 1px);
-  background-size:
-    100px 100px,
-    100px 100px,
-    20px 20px,
-    20px 20px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(3, 105, 161, 0.06) 0%, transparent 40%),
+    radial-gradient(circle at 80% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
   pointer-events: none;
-  animation: gridFloat 20s ease-in-out infinite;
 }
 
-/* 动态光效 */
+/* Mouse tracking light effect */
 #homePage::after {
   content: '';
   position: absolute;
@@ -320,148 +308,87 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background:
-    radial-gradient(
-      600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(59, 130, 246, 0.08) 0%,
-      rgba(139, 92, 246, 0.06) 40%,
-      transparent 80%
-    ),
-    linear-gradient(45deg, transparent 30%, rgba(59, 130, 246, 0.04) 50%, transparent 70%),
-    linear-gradient(-45deg, transparent 30%, rgba(139, 92, 246, 0.04) 50%, transparent 70%);
+  background: radial-gradient(
+    500px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(3, 105, 161, 0.05) 0%,
+    transparent 70%
+  );
   pointer-events: none;
-  animation: lightPulse 8s ease-in-out infinite alternate;
-}
-
-@keyframes gridFloat {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(5px, 5px);
-  }
-}
-
-@keyframes lightPulse {
-  0% {
-    opacity: 0.3;
-  }
-  100% {
-    opacity: 0.7;
-  }
+  transition: opacity 0.3s ease;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: var(--spacing-xl);
   position: relative;
   z-index: 2;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* 移除居中光束效果 */
-
-/* 英雄区域 */
+/* Hero Section */
 .hero-section {
   text-align: center;
-  padding: 80px 0 60px;
-  margin-bottom: 28px;
-  color: #1e293b;
+  padding: 60px 0 40px;
+  margin-bottom: 32px;
   position: relative;
   overflow: hidden;
 }
 
-.hero-section::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background:
-    radial-gradient(ellipse 800px 400px at center, rgba(59, 130, 246, 0.12) 0%, transparent 70%),
-    linear-gradient(45deg, transparent 30%, rgba(139, 92, 246, 0.05) 50%, transparent 70%),
-    linear-gradient(-45deg, transparent 30%, rgba(16, 185, 129, 0.04) 50%, transparent 70%);
-  animation: heroGlow 10s ease-in-out infinite alternate;
-}
-
-@keyframes heroGlow {
-  0% {
-    opacity: 0.6;
-    transform: scale(1);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1.02);
-  }
-}
-
-@keyframes rotate {
-  0% {
-    transform: translate(-50%, -50%) rotate(0deg);
-  }
-  100% {
-    transform: translate(-50%, -50%) rotate(360deg);
-  }
-}
-
 .hero-title {
-  font-size: 56px;
+  font-size: 48px;
   font-weight: 700;
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   line-height: 1.2;
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #10b981 100%);
+  font-family: var(--font-heading, 'Poppins', sans-serif);
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-cyan) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  letter-spacing: -1px;
+  letter-spacing: -0.5px;
   position: relative;
   z-index: 2;
-  animation: titleShimmer 3s ease-in-out infinite;
-}
-
-@keyframes titleShimmer {
-  0%,
-  100% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
 }
 
 .hero-description {
-  font-size: 20px;
+  font-size: 18px;
   margin: 0;
-  opacity: 0.8;
-  color: #64748b;
+  color: var(--text-secondary);
   position: relative;
   z-index: 2;
+  font-family: var(--font-body, 'Open Sans', sans-serif);
 }
 
-/* 输入区域 */
+/* Input Section */
 .input-section {
   position: relative;
-  margin: 0 auto 24px;
+  margin: 0 auto 32px;
   max-width: 800px;
 }
 
 .prompt-input {
-  border-radius: 16px;
-  border: none;
+  border-radius: var(--radius-xl);
+  border: 2px solid var(--border-light);
   font-size: 16px;
   padding: 20px 60px 20px 20px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-glass);
+  transition: all var(--transition-normal);
+  font-family: var(--font-body, 'Open Sans', sans-serif);
+  color: var(--text-primary);
+}
+
+.prompt-input:hover {
+  border-color: var(--border-medium);
+  box-shadow: var(--shadow-md);
 }
 
 .prompt-input:focus {
-  background: rgba(255, 255, 255, 1);
-  box-shadow: 0 15px 50px rgba(0, 0, 0, 0.3);
+  background: var(--bg-primary);
+  border-color: var(--primary-blue);
+  box-shadow: 0 0 0 4px rgba(3, 105, 161, 0.1), var(--shadow-lg);
   transform: translateY(-2px);
 }
 
@@ -474,90 +401,124 @@ onMounted(() => {
   align-items: center;
 }
 
-/* 快捷按钮 */
+.input-actions .ant-btn {
+  background: linear-gradient(135deg, var(--primary-blue), var(--accent-cyan));
+  border: none;
+  border-radius: var(--radius-lg);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: all var(--transition-normal);
+}
+
+.input-actions .ant-btn:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.input-actions .ant-btn span {
+  font-size: 20px;
+  color: var(--text-white);
+}
+
+/* Quick Actions */
 .quick-actions {
   display: flex;
   gap: 12px;
   justify-content: center;
-  margin-bottom: 60px;
+  margin-bottom: 48px;
   flex-wrap: wrap;
 }
 
 .quick-actions .ant-btn {
-  border-radius: 25px;
-  padding: 8px 20px;
+  border-radius: var(--radius-full);
+  padding: 10px 20px;
   height: auto;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(59, 130, 246, 0.2);
-  color: #475569;
-  backdrop-filter: blur(15px);
-  transition: all 0.3s;
-  position: relative;
-  overflow: hidden;
-}
-
-.quick-actions .ant-btn::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
-  transition: left 0.5s;
-}
-
-.quick-actions .ant-btn:hover::before {
-  left: 100%;
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 14px;
+  transition: all var(--transition-normal);
+  box-shadow: var(--shadow-sm);
 }
 
 .quick-actions .ant-btn:hover {
-  background: rgba(255, 255, 255, 0.9);
-  border-color: rgba(59, 130, 246, 0.4);
-  color: #3b82f6;
+  background: var(--bg-primary);
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
   transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+  box-shadow: var(--shadow-md);
 }
 
-/* 区域标题 */
+/* Section Styles */
 .section {
-  margin-bottom: 60px;
+  margin-bottom: 48px;
+  position: relative;
+  z-index: 2;
 }
 
 .section-title {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 600;
-  margin-bottom: 32px;
-  color: #1e293b;
+  margin-bottom: 24px;
+  color: var(--text-primary);
+  font-family: var(--font-heading, 'Poppins', sans-serif);
 }
 
-/* 我的作品网格 */
-.app-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 24px;
-  margin-bottom: 32px;
-}
-
-/* 精选案例网格 */
+/* Grid Layouts */
+.app-grid,
 .featured-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
   gap: 24px;
-  margin-bottom: 32px;
+  margin-bottom: 24px;
 }
 
-/* 分页 */
+/* Pagination */
 .pagination-wrapper {
   display: flex;
   justify-content: center;
   margin-top: 32px;
 }
 
-/* 响应式设计 */
+.pagination-wrapper :deep(.ant-pagination) {
+  display: flex;
+  gap: 8px;
+}
+
+.pagination-wrapper :deep(.ant-pagination-item) {
+  border-radius: var(--radius-md);
+  border-color: var(--border-light);
+  transition: all var(--transition-fast);
+}
+
+.pagination-wrapper :deep(.ant-pagination-item:hover) {
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
+}
+
+.pagination-wrapper :deep(.ant-pagination-item-active) {
+  background: linear-gradient(135deg, var(--primary-blue), var(--accent-cyan));
+  border-color: var(--primary-blue);
+}
+
+.pagination-wrapper :deep(.ant-pagination-item-active a) {
+  color: var(--text-white);
+}
+
+/* Responsive Design */
 @media (max-width: 768px) {
+  .container {
+    padding: var(--spacing-md);
+  }
+
   .hero-title {
-    font-size: 32px;
+    font-size: 36px;
   }
 
   .hero-description {
@@ -569,8 +530,27 @@ onMounted(() => {
     grid-template-columns: 1fr;
   }
 
+  .input-section {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 28px;
+  }
+
+  .hero-description {
+    font-size: 14px;
+  }
+
   .quick-actions {
-    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .quick-actions .ant-btn {
+    width: 100%;
   }
 }
 </style>

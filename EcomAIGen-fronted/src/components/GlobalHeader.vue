@@ -25,7 +25,9 @@
           <div v-if="loginUserStore.loginUser.id">
             <a-dropdown>
               <a-space>
-                <a-avatar :src="loginUserStore.loginUser.userAvatar" />
+                <a-avatar :src="userAvatarSrc">
+                  {{ userInitial }}
+                </a-avatar>
                 {{ loginUserStore.loginUser.userName ?? '无名' }}
               </a-space>
               <template #overlay>
@@ -54,9 +56,14 @@ import { type MenuProps, message } from 'ant-design-vue'
 import { useLoginUserStore } from '@/stores/loginUser.ts'
 import { userLogout } from '@/api/userController.ts'
 import { LogoutOutlined, HomeOutlined } from '@ant-design/icons-vue'
+import { getUserAvatar, getUserInitial } from '@/utils/avatar'
 
 const loginUserStore = useLoginUserStore()
 const router = useRouter()
+
+// Computed avatar properties
+const userAvatarSrc = computed(() => getUserAvatar(loginUserStore.loginUser.userAvatar))
+const userInitial = computed(() => getUserInitial(loginUserStore.loginUser.userName))
 // 当前选中菜单
 const selectedKeys = ref<string[]>(['/'])
 // 监听路由变化，更新当前选中菜单
@@ -133,28 +140,138 @@ const doLogout = async () => {
 
 <style scoped>
 .header {
-  background: #fff;
-  padding: 0 24px;
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 0 var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  border-bottom: 1px solid var(--border-light);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  transition: all var(--transition-normal);
 }
 
 .header-left {
   display: flex;
   align-items: center;
   gap: 12px;
+  text-decoration: none;
+  transition: opacity var(--transition-fast);
+}
+
+.header-left:hover {
+  opacity: 0.8;
 }
 
 .logo {
-  height: 48px;
-  width: 48px;
+  height: 40px;
+  width: 40px;
+  border-radius: var(--radius-md);
 }
 
 .site-title {
   margin: 0;
   font-size: 18px;
-  color: #1890ff;
+  font-weight: 600;
+  font-family: var(--font-heading, 'Poppins', sans-serif);
+  background: linear-gradient(135deg, var(--primary-blue), var(--accent-cyan));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.ant-menu-horizontal {
+:deep(.ant-menu-horizontal) {
   border-bottom: none !important;
+  background: transparent;
+  line-height: 64px;
+}
+
+:deep(.ant-menu-item) {
+  border-radius: var(--radius-md);
+  margin: 0 4px;
+  transition: all var(--transition-fast);
+  font-weight: 500;
+}
+
+:deep(.ant-menu-item:hover) {
+  background: rgba(3, 105, 161, 0.08);
+  color: var(--primary-blue);
+}
+
+:deep(.ant-menu-item-selected) {
+  background: rgba(3, 105, 161, 0.12);
+  color: var(--primary-blue);
+}
+
+:deep(.ant-menu-item a) {
+  color: inherit;
+}
+
+.user-login-status {
+  padding: 0 var(--spacing-md);
+}
+
+.user-login-status :deep(.ant-space) {
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: var(--radius-lg);
+  transition: all var(--transition-fast);
+}
+
+.user-login-status :deep(.ant-space:hover) {
+  background: rgba(3, 105, 161, 0.08);
+}
+
+.user-login-status :deep(.ant-avatar) {
+  background: linear-gradient(135deg, var(--primary-blue), var(--accent-cyan));
+  border: 2px solid var(--border-light);
+}
+
+.user-login-status :deep(.ant-btn-primary) {
+  background: linear-gradient(135deg, var(--primary-blue), var(--accent-cyan));
+  border: none;
+  border-radius: var(--radius-lg);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-normal);
+}
+
+.user-login-status :deep(.ant-btn-primary:hover) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+:deep(.ant-dropdown-menu) {
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-sm);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-light);
+}
+
+:deep(.ant-dropdown-menu-item) {
+  border-radius: var(--radius-md);
+  padding: 10px 16px;
+  transition: all var(--transition-fast);
+}
+
+:deep(.ant-dropdown-menu-item:hover) {
+  background: rgba(3, 105, 161, 0.08);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 var(--spacing-md);
+  }
+
+  .site-title {
+    font-size: 16px;
+  }
+
+  .logo {
+    height: 32px;
+    width: 32px;
+  }
 }
 </style>

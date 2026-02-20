@@ -1,23 +1,29 @@
 <template>
   <div class="user-info">
-    <a-avatar :src="user?.userAvatar" :size="size">
-      {{ user?.userName?.charAt(0) || 'U' }}
+    <a-avatar :src="avatarSrc" :size="size">
+      {{ userInitial }}
     </a-avatar>
     <span v-if="showName" class="user-name">{{ user?.userName || '未知用户' }}</span>
   </div>
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { getUserAvatar, getUserInitial } from '@/utils/avatar'
+
 interface Props {
   user?: API.UserVO
   size?: number | 'small' | 'default' | 'large'
   showName?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   size: 'default',
   showName: true,
 })
+
+const avatarSrc = computed(() => getUserAvatar(props.user?.userAvatar))
+const userInitial = computed(() => getUserInitial(props.user?.userName))
 </script>
 
 <style scoped>
@@ -29,6 +35,7 @@ withDefaults(defineProps<Props>(), {
 
 .user-name {
   font-size: 14px;
-  color: #1a1a1a;
+  color: var(--text-primary);
+  font-weight: 500;
 }
 </style>
